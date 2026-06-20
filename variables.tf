@@ -19,10 +19,5 @@ variable "instance_type" {
 variable "app_image" {
   description = "Docker image for the Node.js app"
   type        = string
-  default     = "xpocky/devops-k8s-app:latest"
-}
-
-variable "key_name" {
-  description = "AWS EC2 key pair name used for SSH"
-  type        = string
+  default     = "dockerhub-name/devops-k8s-app:latest"
 }

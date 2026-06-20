@@ -1,7 +1,7 @@
 # Deploy Dockerized App to AWS EC2 using Terraform
 
 This is a simple DevOps project where I deployed a Dockerized Node.js application with MySQL to an AWS EC2 instance using Terraform.
-The dockerized image was referenced from the project repo of " https://github.com/PrabalPiya/docker-image-CI-CD "
+The dockerized image was referenced from the project repo of "https://github.com/PrabalPiya/docker-image-CI-CD"
 
 The goal of this project is to understand how Terraform, AWS EC2, Docker, Docker Compose, and Docker Hub connect in a real deployment workflow.
 

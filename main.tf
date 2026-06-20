@@ -69,8 +69,6 @@ resource "aws_instance" "app_server" {
   subnet_id              = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
-  key_name = var.key_name
-
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     app_image = var.app_image
   })
