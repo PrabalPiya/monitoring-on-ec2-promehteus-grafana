@@ -1,0 +1,17 @@
+{
+  "name": "project-7-monitoring-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js app with MySQL and Prometheus metrics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mysql2": "^3.22.5",
+    "prom-client": "^15.1.3"
+  }
+}
