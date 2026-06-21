@@ -19,5 +19,5 @@ variable "instance_type" {
 variable "app_image" {
   description = "Docker image for the Node.js app"
   type        = string
-  default     = "xpocky/devops-k8s-app:latest"
+  default     = "YOUR_DOCKERHUB_USERNAME/monitoring-demo-app:latest"
 }

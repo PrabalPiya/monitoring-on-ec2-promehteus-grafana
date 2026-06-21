@@ -6,8 +6,7 @@ echo "===== USER DATA STARTED ====="
 
 yum update -y
 
-# Do NOT install curl here.
-# Amazon Linux already has curl-minimal.
+# Do not install curl. Amazon Linux already has curl-minimal.
 yum install -y docker
 
 systemctl start docker
@@ -27,71 +26,84 @@ chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 echo "===== COMPOSE VERSION ====="
 /usr/bin/docker compose version
 
-echo "===== CREATE APP DIRECTORY ====="
-mkdir -p /opt/devops-app
-cd /opt/devops-app
+echo "===== CREATE PROJECT DIRECTORY ====="
+mkdir -p /opt/monitoring-demo
+cd /opt/monitoring-demo
 
+echo "===== CREATE PROMETHEUS CONFIG ====="
+mkdir -p monitoring
+
+cat > monitoring/prometheus.yml <<EOF
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "monitoring-demo-app"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["app:3000"]
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+EOF
+
+echo "===== CREATE DOCKER COMPOSE FILE ====="
 cat > docker-compose.yml <<EOF
 services:
   app:
     image: ${app_image}
-    container_name: devops-node-app
+    container_name: monitoring-demo-app
     ports:
       - "80:3000"
     environment:
       PORT: 3000
-      DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: rootpassword
-      DB_NAME: bookdb
-      DB_PORT: 3306
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
-  mysql:
-    image: mysql:8.0
-    container_name: devops-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: bookdb
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitoring-prometheus
+    ports:
+      - "9090:9090"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      - app
+      - node-exporter
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monitoring-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring-node-exporter
+    ports:
+      - "9100:9100"
     restart: unless-stopped
 
 volumes:
-  mysql_data:
+  prometheus_data:
+  grafana_data:
 EOF
 
-cat > init.sql <<EOF
-CREATE DATABASE IF NOT EXISTS bookdb;
-
-USE bookdb;
-
-CREATE TABLE IF NOT EXISTS books (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  author VARCHAR(255) NOT NULL
-);
-
-INSERT INTO books (id, title, author)
-VALUES
-  (1, 'The Pragmatic Programmer', 'Andrew Hunt and David Thomas'),
-  (2, 'Clean Code', 'Robert C. Martin'),
-  (3, 'Docker Deep Dive', 'Nigel Poulton')
-ON DUPLICATE KEY UPDATE
-  title = VALUES(title),
-  author = VALUES(author);
-EOF
-
-echo "===== START CONTAINERS ====="
+echo "===== START MONITORING STACK ====="
 /usr/bin/docker compose up -d
 
 echo "===== RUNNING CONTAINERS ====="

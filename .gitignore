@@ -4,5 +4,7 @@ terraform.tfstate.backup
 *.tfvars
 crash.log
 crash.*.log
+
 node_modules/
-**/node_modules/
+.env
+*.log

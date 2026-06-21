@@ -31,13 +31,28 @@ data "aws_ami" "amazon_linux" {
 
 resource "aws_security_group" "app_sg" {
   name        = "${var.project_name}-sg"
-  description = "Allow HTTP traffic"
+  description = "Allow app, Prometheus, and Grafana"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "Allow HTTP from internet"
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "Prometheus"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Grafana"
+    from_port   = 3001
+    to_port     = 3001
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
